@@ -24,12 +24,12 @@
 [INFO]  T E S T S
 [INFO] -------------------------------------------------------
 [INFO] Running edu.montana.csci.csci468.tokenizer.CatScriptTokenizerTest
-[ERROR] Tests run: 16, Failures: 8, Errors: 0, Skipped: 0, Time elapsed: 0.055 s <<< FAILURE! - in edu.montana.csci.csci468.tokenizer.CatScriptTokenizerTest
-[ERROR] escapedStrings  Time elapsed: 0.026 s  <<< FAILURE!
+[ERROR] Tests run: 16, Failures: 8, Errors: 0, Skipped: 0, Time elapsed: 0.065 s <<< FAILURE! - in edu.montana.csci.csci468.tokenizer.CatScriptTokenizerTest
+[ERROR] escapedStrings  Time elapsed: 0.039 s  <<< FAILURE!
 org.opentest4j.AssertionFailedError: expected: <[STRING, EOF]> but was: <[ERROR, IDENTIFIER, ERROR, ERROR, IDENTIFIER, ERROR, EOF]>
 	at edu.montana.csci.csci468.tokenizer.CatScriptTokenizerTest.escapedStrings(CatScriptTokenizerTest.java:51)
 
-[ERROR] linesAreCorrect  Time elapsed: 0.001 s  <<< FAILURE!
+[ERROR] linesAreCorrect  Time elapsed: 0 s  <<< FAILURE!
 org.opentest4j.AssertionFailedError: expected: <2> but was: <1>
 	at edu.montana.csci.csci468.tokenizer.CatScriptTokenizerTest.linesAreCorrect(CatScriptTokenizerTest.java:108)
 
@@ -75,8 +75,8 @@ org.opentest4j.AssertionFailedError: expected: <[ERROR, EOF]> but was: <[ERROR, 
 [INFO] ------------------------------------------------------------------------
 [INFO] BUILD FAILURE
 [INFO] ------------------------------------------------------------------------
-[INFO] Total time:  2.073 s
-[INFO] Finished at: 2022-02-09T16:53:59-07:00
+[INFO] Total time:  1.710 s
+[INFO] Finished at: 2022-02-11T09:07:18-07:00
 [INFO] ------------------------------------------------------------------------
 [ERROR] Failed to execute goal org.apache.maven.plugins:maven-surefire-plugin:2.22.1:test (default-test) on project csci-468-spring2022: There are test failures.
 [ERROR] 
