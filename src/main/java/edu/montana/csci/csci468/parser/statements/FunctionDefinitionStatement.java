@@ -98,8 +98,22 @@ public class FunctionDefinitionStatement extends Statement {
     }
 
     private boolean validateReturnCoverage(List<Statement> statements) {
-        // TODO - implement return coverage checking
-        return true;
+        if (statements.get(statements.size() - 1) instanceof ReturnStatement) {
+            return true;
+        }
+        for (Statement statement : statements) {
+            if (statement instanceof IfStatement) {
+                boolean ifCoverage = false, elseCoverage = false;
+                if (!((IfStatement) statement).getTrueStatements().isEmpty()) {
+                    ifCoverage = validateReturnCoverage(((IfStatement) statement).getTrueStatements());
+                }
+                if (!((IfStatement) statement).getElseStatements().isEmpty()) {
+                    elseCoverage = validateReturnCoverage(((IfStatement) statement).getElseStatements());
+                }
+                return ifCoverage && elseCoverage;
+            }
+        }
+        return false;
     }
 
     public Object invoke(CatscriptRuntime runtime, List<Object> args) {
@@ -146,7 +160,7 @@ public class FunctionDefinitionStatement extends Statement {
     //==============================================================
     @Override
     public void execute(CatscriptRuntime runtime) {
-        super.execute(runtime);
+        //super.execute(runtime);
     }
 
     @Override

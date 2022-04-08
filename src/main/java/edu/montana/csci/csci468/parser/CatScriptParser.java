@@ -57,9 +57,9 @@ public class CatScriptParser {
     //============================================================
 
     private Statement parseProgramStatement() {
-        Statement statement = parseStatement();
-        if (statement != null) {
-            return statement;
+        Statement stmt = parseStatement();
+        if (stmt != null) {
+            return stmt;
         }
         else if (currentFunctionDefinition != null) {
             return parseReturnStatement();
@@ -68,94 +68,35 @@ public class CatScriptParser {
     }
 
     private Statement parseStatement() {
-        if (tokens.match(IF)) {
-            return parseIfStmt();
-        }
-        else if (tokens.match(FOR)) {
-            return parseForStmt();
-        }
-        else if (tokens.match(PRINT)) {
-            return parsePrintStmt();
-        }
-        else if (tokens.match(VAR)) {
-            return parseVarStmt();
+
+        if (tokens.match(VAR)) {
+            return parseVarStatement();
         }
         else if (tokens.match(FUNCTION)) {
-            return parseFunctDecl();
+            return parseFunctionDeclaration();
         }
-
+        else if (tokens.match(IF)) {
+            return parseIfStatement();
+        }
+        else if (tokens.match(FOR)) {
+            return parseForStatement();
+        }
+        else if (tokens.match(PRINT)) {
+            return parsePrintStatement();
+        }
         else if (tokens.match(IDENTIFIER)) {
-            Token identifier = tokens.getCurrentToken();
+            Token t = tokens.getCurrentToken();
             tokens.consumeToken();
             if (tokens.matchAndConsume(EQUAL)) {
-                return parseAssignmentStatement(identifier);
+                return parseAssignmentStatement(t);
             }
-            return new FunctionCallStatement(parseFunctionCallExpression(identifier.getStringValue()));
+            return new FunctionCallStatement(parseFunctionCallExpression(t.getStringValue()));
         }
         return null;
     }
 
-    private Statement parseIfStmt() {
-        IfStatement ifStatement = new IfStatement();
-        ifStatement.setStart(tokens.consumeToken());
 
-        require(LEFT_PAREN, ifStatement);
-        ifStatement.setExpression(parseExpression());
-        require(RIGHT_PAREN, ifStatement);
-        require(LEFT_BRACE, ifStatement);
-        List<Statement> statementList = new ArrayList<>();
-        while (!tokens.match(ELSE) && !tokens.match(EOF) && !tokens.match(RIGHT_BRACE)) {
-            statementList.add(parseProgramStatement());
-        }
-        ifStatement.setTrueStatements(statementList);
-        ifStatement.setEnd(require(RIGHT_BRACE, ifStatement));
-        if (tokens.match(ELSE)) {
-            tokens.consumeToken();
-            List<Statement> elseStatements = new ArrayList<>();
-            if (tokens.match(IF)) {
-                elseStatements.add(parseIfStmt());
-            } else {
-                require(LEFT_BRACE, ifStatement);
-                while (!tokens.match(EOF) && !tokens.match(RIGHT_BRACE)) {
-                    elseStatements.add(parseProgramStatement());
-                }
-                require(RIGHT_BRACE, ifStatement);
-            }
-            ifStatement.setElseStatements(elseStatements);
-        }
-        return ifStatement;
-    }
-
-    private Statement parseForStmt() {
-        ForStatement forStatement = new ForStatement();
-        forStatement.setStart(tokens.consumeToken());
-
-        require(LEFT_PAREN, forStatement);
-        forStatement.setVariableName(require(IDENTIFIER, forStatement).getStringValue());
-        require(IN, forStatement);
-        forStatement.setExpression(parseExpression());
-        require(RIGHT_PAREN, forStatement);
-        require(LEFT_BRACE, forStatement);
-        List<Statement> statementList = new ArrayList<>();
-        while (!tokens.match(RIGHT_BRACE) && !tokens.match(EOF)) {
-            statementList.add(parseStatement());
-        }
-        forStatement.setBody(statementList);
-        forStatement.setEnd(require(RIGHT_BRACE, forStatement));
-        return forStatement;
-    }
-
-    private Statement parsePrintStmt() {
-        PrintStatement printStatement = new PrintStatement();
-        printStatement.setStart(tokens.consumeToken());
-        require(LEFT_PAREN, printStatement);
-        printStatement.setExpression(parseExpression());
-        printStatement.setEnd(require(RIGHT_PAREN, printStatement));
-
-        return printStatement;
-    }
-
-    private Statement parseVarStmt() {
+    private Statement parseVarStatement() {
         VariableStatement variableStatement = new VariableStatement();
         variableStatement.setStart(tokens.consumeToken());
 
@@ -171,7 +112,7 @@ public class CatScriptParser {
         return variableStatement;
     }
 
-    private Statement parseFunctDecl() {
+    private Statement parseFunctionDeclaration() {
         if (tokens.matchAndConsume(FUNCTION)) {
             FunctionDefinitionStatement functionDefinitionStatement = new FunctionDefinitionStatement();
             functionDefinitionStatement.setStart(tokens.lastToken());
@@ -205,6 +146,66 @@ public class CatScriptParser {
         } else {
             return null;
         }
+    }
+
+    private Statement parseIfStatement() {
+        IfStatement ifStatement = new IfStatement();
+        ifStatement.setStart(tokens.consumeToken());
+
+        require(LEFT_PAREN, ifStatement);
+        ifStatement.setExpression(parseExpression());
+        require(RIGHT_PAREN, ifStatement);
+        require(LEFT_BRACE, ifStatement);
+        List<Statement> statementList = new ArrayList<>();
+        while (!tokens.match(ELSE) && !tokens.match(EOF) && !tokens.match(RIGHT_BRACE)) {
+            statementList.add(parseProgramStatement());
+        }
+        ifStatement.setTrueStatements(statementList);
+        ifStatement.setEnd(require(RIGHT_BRACE, ifStatement));
+        if (tokens.match(ELSE)) {
+            tokens.consumeToken();
+            List<Statement> elseStatements = new ArrayList<>();
+            if (tokens.match(IF)) {
+                elseStatements.add(parseIfStatement());
+            } else {
+                require(LEFT_BRACE, ifStatement);
+                while (!tokens.match(EOF) && !tokens.match(RIGHT_BRACE)) {
+                    elseStatements.add(parseProgramStatement());
+                }
+                require(RIGHT_BRACE, ifStatement);
+            }
+            ifStatement.setElseStatements(elseStatements);
+        }
+        return ifStatement;
+    }
+
+    private Statement parseForStatement() {
+        ForStatement forStatement = new ForStatement();
+        forStatement.setStart(tokens.consumeToken());
+
+        require(LEFT_PAREN, forStatement);
+        forStatement.setVariableName(require(IDENTIFIER, forStatement).getStringValue());
+        require(IN, forStatement);
+        forStatement.setExpression(parseExpression());
+        require(RIGHT_PAREN, forStatement);
+        require(LEFT_BRACE, forStatement);
+        List<Statement> statementList = new ArrayList<>();
+        while (!tokens.match(RIGHT_BRACE) && !tokens.match(EOF)) {
+            statementList.add(parseStatement());
+        }
+        forStatement.setBody(statementList);
+        forStatement.setEnd(require(RIGHT_BRACE, forStatement));
+        return forStatement;
+    }
+
+    private Statement parsePrintStatement() {
+        PrintStatement printStatement = new PrintStatement();
+        printStatement.setStart(tokens.consumeToken());
+        require(LEFT_PAREN, printStatement);
+        printStatement.setExpression(parseExpression());
+        printStatement.setEnd(require(RIGHT_PAREN, printStatement));
+
+        return printStatement;
     }
 
     private Statement parseAssignmentStatement(Token identifier) {

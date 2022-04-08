@@ -28,7 +28,7 @@ public class CatscriptParserTypeCheckingTest extends CatscriptTestBase {
     }
 
     @Test
-    void identifiersWorkProperly() {
+     void identifiersWorkProperly() {
         PrintStatement print = parseStatement("var x = 1 print( x )", 1);
         assertEquals(CatscriptType.INT, print.getExpression().getType());
     }

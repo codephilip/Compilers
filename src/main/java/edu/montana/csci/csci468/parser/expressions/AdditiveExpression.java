@@ -44,7 +44,18 @@ public class AdditiveExpression extends Expression {
                 rightHandSide.addError(ErrorType.INCOMPATIBLE_TYPES);
             }
         }
-        // TODO handle strings
+        else if (getType().equals(CatscriptType.STRING)) {
+            if (!CatscriptType.STRING.isAssignableFrom(leftHandSide.getType())) {
+                if (!leftHandSide.getType().equals(CatscriptType.INT)) {
+                    leftHandSide.addError(ErrorType.INCOMPATIBLE_TYPES);
+                }
+            }
+            if (!CatscriptType.STRING.isAssignableFrom(rightHandSide.getType())) {
+                if (!rightHandSide.getType().equals(CatscriptType.INT)) {
+                    rightHandSide.addError(ErrorType.INCOMPATIBLE_TYPES);
+                }
+            }
+        }
     }
 
     @Override
@@ -67,13 +78,20 @@ public class AdditiveExpression extends Expression {
 
     @Override
     public Object evaluate(CatscriptRuntime runtime) {
-        Integer lhsValue = (Integer) leftHandSide.evaluate(runtime);
-        Integer rhsValue = (Integer) rightHandSide.evaluate(runtime);
-        //TODO handle string case
-        if (isAdd()) {
-            return lhsValue + rhsValue;
-        } else {
-            return lhsValue - rhsValue;
+        if (getType().equals(CatscriptType.INT)) {
+            Integer lhsValue = (Integer) leftHandSide.evaluate(runtime);
+            Integer rhsValue = (Integer) rightHandSide.evaluate(runtime);
+
+            //TODO handle string case
+            if (isAdd()) {
+                return lhsValue + rhsValue;
+            } else {
+                return lhsValue - rhsValue;
+            }
+        }else {
+            Object lhsValue = leftHandSide.evaluate(runtime);
+            Object rhsValue = rightHandSide.evaluate(runtime);
+            return String.valueOf(lhsValue) + rhsValue;
         }
     }
 

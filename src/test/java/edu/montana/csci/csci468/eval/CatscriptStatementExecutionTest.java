@@ -92,6 +92,4 @@ public class CatscriptStatementExecutionTest extends CatscriptTestBase {
                 "print(foo(9))"
         ));
     }
-
-
 }
