@@ -2,6 +2,7 @@ package edu.montana.csci.csci468.parser;
 
 import java.util.List;
 import java.util.Objects;
+import java.util.HashMap;
 
 public class CatscriptType {
 
@@ -32,8 +33,21 @@ public class CatscriptType {
     }
 
     // TODO memoize this call
+    static final HashMap<CatscriptType, ListType> cache = new HashMap<>();
+
     public static CatscriptType getListType(CatscriptType type) {
-        return new ListType(type);
+        // getting listtype from the cache called it memory.
+        ListType listTypeMem = cache.get(type);
+        // if the memory is null, means that it hasn't been cached yet.
+        if (listTypeMem == null) {
+            // create the type and put it into the cache and return it.
+            ListType listType = new ListType(type);
+            cache.put(type, listType);
+            return listType;
+        } else {
+            // if It's cached return the cached type.
+            return listTypeMem;
+        }
     }
 
     @Override
@@ -43,8 +57,10 @@ public class CatscriptType {
 
     @Override
     public boolean equals(Object o) {
-        if (this == o) return true;
-        if (o == null || getClass() != o.getClass()) return false;
+        if (this == o)
+            return true;
+        if (o == null || getClass() != o.getClass())
+            return false;
         CatscriptType that = (CatscriptType) o;
         return Objects.equals(name, that.name);
     }
@@ -60,6 +76,7 @@ public class CatscriptType {
 
     public static class ListType extends CatscriptType {
         private final CatscriptType componentType;
+
         public ListType(CatscriptType componentType) {
             super("list<" + componentType.toString() + ">", List.class);
             this.componentType = componentType;
