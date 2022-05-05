@@ -8,6 +8,8 @@ import edu.montana.csci.csci468.parser.ParseError;
 import edu.montana.csci.csci468.parser.SymbolTable;
 import edu.montana.csci.csci468.tokenizer.Token;
 import edu.montana.csci.csci468.tokenizer.TokenType;
+import org.objectweb.asm.Label;
+import org.objectweb.asm.Opcodes;
 
 public class UnaryExpression extends Expression {
 
@@ -41,7 +43,7 @@ public class UnaryExpression extends Expression {
         rightHandSide.validate(symbolTable);
         if (isNot() && !rightHandSide.getType().equals(CatscriptType.BOOLEAN)) {
             addError(ErrorType.INCOMPATIBLE_TYPES);
-        } else if(isMinus() && !rightHandSide.getType().equals(CatscriptType.INT)) {
+        } else if (isMinus() && !rightHandSide.getType().equals(CatscriptType.INT)) {
             addError(ErrorType.INCOMPATIBLE_TYPES);
         }
     }
@@ -55,9 +57,9 @@ public class UnaryExpression extends Expression {
         }
     }
 
-    //==============================================================
+    // ==============================================================
     // Implementation
-    //==============================================================
+    // ==============================================================
 
     @Override
     public Object evaluate(CatscriptRuntime runtime) {
@@ -65,7 +67,7 @@ public class UnaryExpression extends Expression {
         if (this.isMinus()) {
             return -1 * (Integer) rhsValue;
         } else {
-            return ! (Boolean) rhsValue;
+            return !(Boolean) rhsValue;
         }
     }
 
@@ -76,8 +78,19 @@ public class UnaryExpression extends Expression {
 
     @Override
     public void compile(ByteCodeGenerator code) {
-        super.compile(code);
+        rightHandSide.compile(code);
+        if (isMinus()) {
+            code.addInstruction(Opcodes.INEG);
+        } else {
+            Label trueLbl = new Label();
+            Label falseLbl = new Label();
+            code.addJumpInstruction(Opcodes.IFNE, trueLbl);
+            code.addInstruction(Opcodes.ICONST_1);
+            code.addJumpInstruction(Opcodes.GOTO, falseLbl);
+            code.addLabel(trueLbl);
+            code.addInstruction(Opcodes.ICONST_0);
+            code.addLabel(falseLbl);
+        }
+
     }
-
-
 }

@@ -7,9 +7,13 @@ import edu.montana.csci.csci468.parser.ErrorType;
 import edu.montana.csci.csci468.parser.ParseError;
 import edu.montana.csci.csci468.parser.SymbolTable;
 import edu.montana.csci.csci468.parser.expressions.Expression;
-
+import org.objectweb.asm.Label;
+import org.objectweb.asm.Opcodes;
 import java.util.LinkedList;
 import java.util.List;
+import java.util.Iterator;
+
+import static edu.montana.csci.csci468.bytecode.ByteCodeGenerator.internalNameFor;
 
 public class ForStatement extends Statement {
     private Expression expression;
@@ -68,9 +72,9 @@ public class ForStatement extends Statement {
         return ((CatscriptType.ListType) expression.getType()).getComponentType();
     }
 
-    //==============================================================
+    // ==============================================================
     // Implementation
-    //==============================================================
+    // ==============================================================
     @Override
     public void execute(CatscriptRuntime runtime) {
         for (Object loopVar : (List<Object>) expression.evaluate(runtime)) {
@@ -88,7 +92,36 @@ public class ForStatement extends Statement {
 
     @Override
     public void compile(ByteCodeGenerator code) {
-        super.compile(code);
+        Integer iterSlot = code.nextLocalStorageSlot();
+        Label iterLbl = new Label();
+        Label returnLbL = new Label();
+
+        expression.compile(code);
+        code.addMethodInstruction(Opcodes.INVOKEINTERFACE, internalNameFor(List.class), "iterator",
+                "()Ljava/util/Iterator;");
+        code.addVarInstruction(Opcodes.ASTORE, iterSlot);
+        code.addLabel(iterLbl);
+        code.addVarInstruction(Opcodes.ALOAD, iterSlot);
+        code.addMethodInstruction(Opcodes.INVOKEINTERFACE, internalNameFor(Iterator.class), "hasNext",
+                "()Z");
+        code.addJumpInstruction(Opcodes.IFEQ, returnLbL);
+        CatscriptType componentType = getComponentType();
+        code.addVarInstruction(Opcodes.ALOAD, iterSlot);
+        code.addMethodInstruction(Opcodes.INVOKEINTERFACE, internalNameFor(Iterator.class), "next",
+                "()Ljava/lang/Object;");
+        code.addTypeInstruction(Opcodes.CHECKCAST, internalNameFor(componentType.getJavaType()));
+        unbox(code, componentType);
+        Integer iterVarSlot = code.createLocalStorageSlotFor(variableName);
+        if (componentType.equals(CatscriptType.INT) || componentType.equals(CatscriptType.BOOLEAN)) {
+            code.addVarInstruction(Opcodes.ISTORE, iterVarSlot);
+        } else {
+            code.addVarInstruction(Opcodes.ASTORE, iterVarSlot);
+        }
+        for (Statement statement : body) {
+            statement.compile(code);
+        }
+        code.addJumpInstruction(Opcodes.GOTO, iterLbl);
+        code.addLabel(returnLbL);
     }
 
 }

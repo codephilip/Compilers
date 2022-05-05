@@ -27,7 +27,7 @@ public class CatScriptParser {
         Expression expression = null;
         try {
             expression = parseExpression();
-        } catch(RuntimeException re) {
+        } catch (RuntimeException re) {
             // ignore :)
         }
         if (expression == null || tokens.hasMoreTokens()) {
@@ -42,6 +42,7 @@ public class CatScriptParser {
         program.setEnd(tokens.getCurrentToken());
         return program;
     }
+
     public CatScriptProgram parseAsExpression(String source) {
         tokens = new CatScriptTokenizer(source).getTokens();
         CatScriptProgram program = new CatScriptProgram();
@@ -52,16 +53,15 @@ public class CatScriptParser {
         return program;
     }
 
-    //============================================================
-    //  Statements
-    //============================================================
+    // ============================================================
+    // Statements
+    // ============================================================
 
     private Statement parseProgramStatement() {
         Statement stmt = parseStatement();
         if (stmt != null) {
             return stmt;
-        }
-        else if (currentFunctionDefinition != null) {
+        } else if (currentFunctionDefinition != null) {
             return parseReturnStatement();
         }
         return new SyntaxErrorStatement(tokens.consumeToken());
@@ -71,20 +71,15 @@ public class CatScriptParser {
 
         if (tokens.match(VAR)) {
             return parseVarStatement();
-        }
-        else if (tokens.match(FUNCTION)) {
+        } else if (tokens.match(FUNCTION)) {
             return parseFunctionDeclaration();
-        }
-        else if (tokens.match(IF)) {
+        } else if (tokens.match(IF)) {
             return parseIfStatement();
-        }
-        else if (tokens.match(FOR)) {
+        } else if (tokens.match(FOR)) {
             return parseForStatement();
-        }
-        else if (tokens.match(PRINT)) {
+        } else if (tokens.match(PRINT)) {
             return parsePrintStatement();
-        }
-        else if (tokens.match(IDENTIFIER)) {
+        } else if (tokens.match(IDENTIFIER)) {
             Token t = tokens.getCurrentToken();
             tokens.consumeToken();
             if (tokens.matchAndConsume(EQUAL)) {
@@ -94,7 +89,6 @@ public class CatScriptParser {
         }
         return null;
     }
-
 
     private Statement parseVarStatement() {
         VariableStatement variableStatement = new VariableStatement();
@@ -117,11 +111,13 @@ public class CatScriptParser {
             FunctionDefinitionStatement functionDefinitionStatement = new FunctionDefinitionStatement();
             functionDefinitionStatement.setStart(tokens.lastToken());
             functionDefinitionStatement.setName(require(IDENTIFIER, functionDefinitionStatement).getStringValue());
+            
             require(LEFT_PAREN, functionDefinitionStatement);
             HashMap<String, TypeLiteral> parameters = parseParameterList();
             for (String parameterName : parameters.keySet()) {
                 functionDefinitionStatement.addParameter(parameterName, parameters.get(parameterName));
             }
+            
             require(RIGHT_PAREN, functionDefinitionStatement);
             TypeLiteral functionType = new TypeLiteral();
             if (tokens.matchAndConsume(COLON)) {
@@ -130,6 +126,7 @@ public class CatScriptParser {
                 functionType.setType(CatscriptType.VOID);
             }
             functionDefinitionStatement.setType(functionType);
+            
             require(LEFT_BRACE, functionDefinitionStatement);
             currentFunctionDefinition = functionDefinitionStatement;
             List<Statement> bodyList = new ArrayList<>();
@@ -246,9 +243,9 @@ public class CatScriptParser {
         return returnStatement;
     }
 
-    //============================================================
-    //  Expressions
-    //============================================================
+    // ============================================================
+    // Expressions
+    // ============================================================
 
     private Expression parseExpression() {
         return parseEqualityExpression();
@@ -338,7 +335,8 @@ public class CatScriptParser {
             return stringLiteralExpression;
         } else if (tokens.match(TRUE, FALSE)) {
             Token booleanToken = tokens.consumeToken();
-            BooleanLiteralExpression booleanExpression = new BooleanLiteralExpression(Boolean.parseBoolean(booleanToken.getStringValue()));
+            BooleanLiteralExpression booleanExpression = new BooleanLiteralExpression(
+                    Boolean.parseBoolean(booleanToken.getStringValue()));
             booleanExpression.setToken(booleanToken);
             return booleanExpression;
         } else if (tokens.match(NULL)) {
@@ -350,8 +348,7 @@ public class CatScriptParser {
             return parseListLiteralExpression();
         } else if (tokens.match(LEFT_PAREN)) {
             return parseParenthesizedExpression();
-        }
-        else {
+        } else {
             SyntaxErrorExpression syntaxErrorExpression = new SyntaxErrorExpression(tokens.consumeToken());
             return syntaxErrorExpression;
         }
@@ -429,15 +426,15 @@ public class CatScriptParser {
         return type;
     }
 
-    //============================================================
-    //  Parse Helpers
-    //============================================================
+    // ============================================================
+    // Parse Helpers
+    // ============================================================
     private Token require(TokenType type, ParseElement elt) {
         return require(type, elt, ErrorType.UNEXPECTED_TOKEN);
     }
 
     private Token require(TokenType type, ParseElement elt, ErrorType msg) {
-        if(tokens.match(type)){
+        if (tokens.match(type)) {
             return tokens.consumeToken();
         } else {
             elt.addError(msg, tokens.getCurrentToken());

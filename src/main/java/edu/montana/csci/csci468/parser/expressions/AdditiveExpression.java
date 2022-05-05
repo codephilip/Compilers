@@ -9,6 +9,7 @@ import edu.montana.csci.csci468.parser.SymbolTable;
 import edu.montana.csci.csci468.tokenizer.Token;
 import edu.montana.csci.csci468.tokenizer.TokenType;
 import org.objectweb.asm.Opcodes;
+import static edu.montana.csci.csci468.bytecode.ByteCodeGenerator.*;
 
 public class AdditiveExpression extends Expression {
 
@@ -102,14 +103,28 @@ public class AdditiveExpression extends Expression {
         getRightHandSide().transpile(javascript);
     }
 
+
     @Override
     public void compile(ByteCodeGenerator code) {
-        getLeftHandSide().compile(code);
-        getRightHandSide().compile(code);
-        if (isAdd()) {
-            code.addInstruction(Opcodes.IADD);
+        if (getType().equals(CatscriptType.INT)) {
+            getLeftHandSide().compile(code);
+            getRightHandSide().compile(code);
+            if (isAdd()) {
+                code.addInstruction(Opcodes.IADD);
+            } else {
+                code.addInstruction(Opcodes.ISUB);
+            }
         } else {
-            code.addInstruction(Opcodes.ISUB);
+            getLeftHandSide().compile(code);
+            box(code, getLeftHandSide().getType());
+            code.addMethodInstruction(Opcodes.INVOKESTATIC, internalNameFor(String.class), "valueOf",
+                    "(Ljava/lang/Object;)Ljava/lang/String;");
+            getRightHandSide().compile(code);
+            box(code, getRightHandSide().getType());
+            code.addMethodInstruction(Opcodes.INVOKESTATIC, internalNameFor(String.class), "valueOf",
+                    "(Ljava/lang/Object;)Ljava/lang/String;");
+            code.addMethodInstruction(Opcodes.INVOKEVIRTUAL, internalNameFor(String.class), "concat",
+                    "(Ljava/lang/String;)Ljava/lang/String;");
         }
     }
 

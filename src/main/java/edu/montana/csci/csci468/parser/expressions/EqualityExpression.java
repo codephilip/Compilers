@@ -7,6 +7,9 @@ import edu.montana.csci.csci468.parser.SymbolTable;
 import edu.montana.csci.csci468.tokenizer.Token;
 import edu.montana.csci.csci468.tokenizer.TokenType;
 
+import org.objectweb.asm.Opcodes;
+import org.objectweb.asm.Label;
+
 public class EqualityExpression extends Expression {
 
     private final Token operator;
@@ -47,18 +50,16 @@ public class EqualityExpression extends Expression {
         return CatscriptType.BOOLEAN;
     }
 
-    //==============================================================
+    // ==============================================================
     // Implementation
-    //==============================================================
+    // ==============================================================
 
     @Override
     public Object evaluate(CatscriptRuntime runtime) {
-        Object lhsValue = leftHandSide.evaluate(runtime);
-        Object rhsValue = rightHandSide.evaluate(runtime);
-        if (operator.getType().equals(TokenType.EQUAL_EQUAL)) {
-            return lhsValue == rhsValue;
+        if (operator.equals("==")) {
+            return getLeftHandSide() == getRightHandSide();
         } else {
-            return lhsValue != rhsValue;
+            return getLeftHandSide() != getRightHandSide();
         }
     }
 
@@ -69,8 +70,29 @@ public class EqualityExpression extends Expression {
 
     @Override
     public void compile(ByteCodeGenerator code) {
-        super.compile(code);
+        leftHandSide.compile(code);
+        box(code, leftHandSide.getType());
+        rightHandSide.compile(code);
+        box(code, rightHandSide.getType());
+        if (isEqual()) {
+            Label falseLbl = new Label();
+            Label endLbl = new Label();
+            code.addJumpInstruction(Opcodes.IF_ACMPNE, falseLbl);
+            code.addInstruction(Opcodes.ICONST_1);
+            code.addJumpInstruction(Opcodes.GOTO, endLbl);
+            code.addLabel(falseLbl);
+            code.addInstruction(Opcodes.ICONST_0);
+            code.addLabel(endLbl);
+        } else {
+            Label trueLbl = new Label();
+            Label endLbl = new Label();
+            code.addJumpInstruction(Opcodes.IF_ACMPNE, trueLbl);
+            code.addInstruction(Opcodes.ICONST_0);
+            code.addJumpInstruction(Opcodes.GOTO, endLbl);
+            code.addLabel(trueLbl);
+            code.addInstruction(Opcodes.ICONST_1);
+            code.addLabel(endLbl);
+        }
     }
-
 
 }

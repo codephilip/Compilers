@@ -39,12 +39,12 @@ public class ReturnStatement extends Statement {
         }
     }
 
-    //==============================================================
+    // ==============================================================
     // Implementation
-    //==============================================================
+    // ==============================================================
     @Override
     public void execute(CatscriptRuntime runtime) {
-        //super.execute(runtime);
+        // super.execute(runtime);
         throw new ReturnException(expression.evaluate(runtime));
     }
 
@@ -55,7 +55,12 @@ public class ReturnStatement extends Statement {
 
     @Override
     public void compile(ByteCodeGenerator code) {
-        super.compile(code);
+        expression.compile(code);
+        if (function.getType().equals(CatscriptType.OBJECT)) {
+            box(code, expression.getType());
+        }
+
+        // super.compile(code);
     }
 
 }
