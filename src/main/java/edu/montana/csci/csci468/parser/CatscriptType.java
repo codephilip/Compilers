@@ -34,19 +34,14 @@ public class CatscriptType {
 
     // TODO memoize this call
     static final HashMap<CatscriptType, ListType> cache = new HashMap<>();
-
     public static CatscriptType getListType(CatscriptType type) {
-        // getting listtype from the cache called it memory.
-        ListType listTypeMem = cache.get(type);
-        // if the memory is null, means that it hasn't been cached yet.
-        if (listTypeMem == null) {
-            // create the type and put it into the cache and return it.
+        ListType potentialMatch = cache.get(type);
+        if (potentialMatch == null) {
             ListType listType = new ListType(type);
             cache.put(type, listType);
             return listType;
         } else {
-            // if It's cached return the cached type.
-            return listTypeMem;
+            return potentialMatch;
         }
     }
 
