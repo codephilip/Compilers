@@ -34,6 +34,7 @@ public class CatscriptType {
 
     // TODO memoize this call
     static final HashMap<CatscriptType, ListType> cache = new HashMap<>();
+
     public static CatscriptType getListType(CatscriptType type) {
         ListType potentialMatch = cache.get(type);
         if (potentialMatch == null) {
